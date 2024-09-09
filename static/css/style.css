@@ -1,0 +1,165 @@
+.container {
+    width: 100%;
+    max-width: 500px; /* Limit the width of the form */
+    margin: 0 auto; /* Center the form horizontally */
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center; /* Center text inside the form */
+}
+
+h1 {
+    font-size: 24px;
+    color: #333;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+label {
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+input[type="number"] {
+    width: 100%; /* Full width of the container */
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+.upload-box {
+    width: 300px;   /* Increase width */
+    height: 200px;  /* Increase height */
+    border: 2px dashed #cccccc;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #e0e0e0;
+    color: #666666;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 16px;  /* Adjust font size */
+    margin: 20px auto;  /* Center horizontally */
+}
+
+.upload-box p {
+    text-align: center;
+    margin: 0;
+    pointer-events: none;
+}
+.navbar {
+    width: 100%;
+    background-color: #e7e6e6;
+    overflow: hidden;
+    padding: 10px 0;
+    box-shadow: 0 4px 8px rgba(246, 246, 246, 0.1);
+}
+.navbar ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+.navbar ul li {
+    display: inline;
+    margin-right: 20px;
+}
+.navbar ul li a {
+    color: rgb(0, 0, 0);
+    padding: 14px 20px;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+/* Container for Crop Section */
+.container {
+    margin-top: 50px;
+    text-align: center;
+}
+
+.upload-box {
+    width: 300px;
+    height: 300px;
+    border: 2px dashed #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    cursor: pointer;
+}
+
+#crop-container {
+    margin: 20px 0;
+}
+
+/* Navbar styling (same as before) */
+.navbar {
+    width: 100%;
+    background-color: white;
+    overflow: hidden;
+    padding: 10px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navbar ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.navbar ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+.navbar ul li a {
+    color: black;
+    padding: 14px 20px;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.navbar ul li a:hover {
+    background-color: #f0f0f0;
+    color: black;
+    transition: background-color 0.3s ease;
+}
+
+.navbar ul li a {
+    padding: 10px;
+    color: black;
+    text-decoration: none;
+}
+.navbar ul li a.active {
+    background-color:#e8e8e8;  /* Darker background color */
+    color: black;
+    font-weight: bold;
+    border-radius: 0px;
+}
+
