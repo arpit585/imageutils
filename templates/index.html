@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Resizer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
 </head>
 <body>
 <!-- Navbar -->
@@ -31,6 +32,17 @@
         </div>
         <button type="submit">Resize Image</button>
     </form>
+
+    <!-- Conditional display based on the existence of a resized image -->
+    {% if image_url and download_filename %}
+    <div class="image-display">
+        <h2>Resized Image:</h2>
+        <img src="{{ image_url }}" alt="Resized Image">
+
+        <h3>Download Resized Image:</h3>
+        <a href="{{ url_for('download_image', filename=download_filename) }}" class="btn">Download Image</a>
+    </div>
+    {% endif %}
 </div>
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>

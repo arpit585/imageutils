@@ -17,6 +17,7 @@
     </ul>
 </div>
 
+<!-- Main container for image compression -->
 <div class="container">
     <h1>Image Compressor</h1>
     <form action="{{ url_for('image_compress') }}" method="POST" enctype="multipart/form-data">
@@ -27,6 +28,17 @@
         <input type="number" id="size" name="size" value="60" required><br>
         <button type="submit">Compress Image</button>
     </form>
+
+    <!-- Display compressed image download link after processing -->
+    {% if image_url and download_filename %}
+        <div class="image-output">
+            <h2>Compressed Image</h2>
+            <a href="{{ image_url }}" download="{{ download_filename }}">Download Compressed Image</a>
+            
+            <h3>Download Resized Image:</h3>
+            <a href="{{ url_for('download_image', filename=download_filename) }}" class="btn">Download Image</a>
+        </div>
+    {% endif %}
 </div>
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>

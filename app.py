@@ -4,6 +4,8 @@ import os
 from io import BytesIO
 
 app = Flask(__name__)
+
+# Directories for storing files
 UPLOAD_FOLDER = '/Users/arpit/Desktop/Project/uploads'
 RESIZED_FOLDER = '/Users/arpit/Desktop/Project/resized'
 COMPRESSED_FOLDER = '/Users/arpit/Desktop/Project/compressed'
@@ -18,48 +20,41 @@ for folder in [UPLOAD_FOLDER, RESIZED_FOLDER, COMPRESSED_FOLDER]:
 
 @app.route('/')
 def home():
+    # Render the form to upload and resize images
     return render_template('index.html', active_page='home')
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
-    if 'image' not in request.files:
+    if 'image' not in request.files or not request.files['image'].filename:
         return redirect(url_for('home'))
-    
+
     file = request.files['image']
-    if file.filename == '':
-        return redirect(url_for('home'))
-    
     if file:
+        # Save original image
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
-        
-        # Open image and resize
+
+        # Resize image
         width = int(request.form['width'])
         height = int(request.form['height'])
         img = Image.open(filepath)
         img_resized = img.resize((width, height))
-        
-        # Save the resized image
-        resized_path = os.path.join(app.config['RESIZED_FOLDER'], f'resized_{file.filename}')
-        img_resized.save(resized_path)
-        
-        return redirect(url_for('display_image', filename=f'resized_{file.filename}'))
 
-@app.route('/display/<filename>')
-def display_image(filename):
-    file_url = os.path.join(app.config['RESIZED_FOLDER'], filename)
+        # Save resized image
+        resized_filename = f'resized_{file.filename}'
+        resized_path = os.path.join(app.config['RESIZED_FOLDER'], resized_filename)
+        img_resized.save(resized_path)
+
+        # Pass resized image URL and filename to template
+        image_url = url_for('download_image', filename=resized_filename)
+
+        return render_template('index.html', active_page='home', image_url=image_url, download_filename=resized_filename)
     
-    # Check if file exists
-    if not os.path.isfile(file_url):
-        return f"File {filename} not found!", 404
-    
-    return render_template('display_image.html', image_url=url_for('static', filename=os.path.join('resized', filename)), filename=filename)
+    return redirect(url_for('home'))
 
 @app.route('/download/<filename>')
 def download_image(filename):
     file_path = os.path.join(app.config['RESIZED_FOLDER'], filename)
-    
-    # Check if file exists
     if not os.path.isfile(file_path):
         return f"File {filename} not found!", 404
     
@@ -73,43 +68,37 @@ def crop_image():
 def image_compress():
     if request.method == 'POST':
         target_size_kb = int(request.form['size'])  # Get target size in KB from user
-        if 'image' not in request.files:
+        if 'image' not in request.files or not request.files['image'].filename:
             return redirect(url_for('image_compress'))
-        
         file = request.files['image']
-        if file.filename == '':
-            return redirect(url_for('image_compress'))
-        
-        if file:
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(filepath)
-            
-            # Compress the image to the target size
-            img = Image.open(filepath)
-            compressed_filename = f"compressed_{file.filename}"
-            compressed_filepath = os.path.join(app.config['COMPRESSED_FOLDER'], compressed_filename)
-            
-            compress_image(img, compressed_filepath, target_size_kb)
-            
-            return redirect(url_for('display_compressed_image', filename=compressed_filename))
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filepath)
 
+        # Compress the image
+        img = Image.open(filepath)
+        compressed_filename = f"compressed_{file.filename}"
+        compressed_filepath = os.path.join(app.config['COMPRESSED_FOLDER'], compressed_filename)
+        compress_image(img, compressed_filepath, target_size_kb)
+
+        # Redirect to display the compressed image
+        return redirect(url_for('display_compressed_image', filename=compressed_filename))
+    
     return render_template('image_compress.html', active_page='image_compress')
 
 @app.route('/display_compressed/<filename>')
 def display_compressed_image(filename):
+    compressed_filename = filename
     file_url = os.path.join(app.config['COMPRESSED_FOLDER'], filename)
-    
-    # Check if file exists
+
     if not os.path.isfile(file_url):
         return f"File {filename} not found!", 404
-    
-    return render_template('display_image.html', image_url=url_for('static', filename=os.path.join('compressed', filename)), filename=filename)
+
+    return render_template('display_image.html', image_url=url_for('download_compressed_image', filename=filename), filename=compressed_filename)
 
 @app.route('/download_compressed/<filename>')
 def download_compressed_image(filename):
     file_path = os.path.join(app.config['COMPRESSED_FOLDER'], filename)
     
-    # Check if file exists
     if not os.path.isfile(file_path):
         return f"File {filename} not found!", 404
     
@@ -135,31 +124,29 @@ def compress_image(image, output_path, target_size_kb):
     
     with open(output_path, 'wb') as f:
         f.write(img_io.getvalue())
+    print(f"Compressed image saved to: {output_path}")  # Log the path
+    print(f"File exists: {os.path.isfile(output_path)}")  # Check if the file was saved successfully
 
 @app.route('/rotate_image', methods=['GET', 'POST'])
 def rotate_image():
     if request.method == 'POST':
         angle = int(request.form['angle'])  # Get rotation angle from user
-        if 'image' not in request.files:
+        if 'image' not in request.files or not request.files['image'].filename:
             return redirect(url_for('rotate_image'))
         
         file = request.files['image']
-        if file.filename == '':
-            return redirect(url_for('rotate_image'))
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filepath)
+
+        # Rotate image
+        img = Image.open(filepath)
+        rotated_filename = f"rotated_{file.filename}"
+        rotated_filepath = os.path.join(app.config['RESIZED_FOLDER'], rotated_filename)
+        img_rotated = img.rotate(angle, expand=True)  # Rotate image
         
-        if file:
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(filepath)
-            
-            # Open image and rotate
-            img = Image.open(filepath)
-            rotated_filename = f"rotated_{file.filename}"
-            rotated_filepath = os.path.join(app.config['RESIZED_FOLDER'], rotated_filename)
-            img_rotated = img.rotate(angle, expand=True)  # Rotate image
-            
-            img_rotated.save(rotated_filepath)
-            
-            return redirect(url_for('display_rotated_image', filename=rotated_filename))
+        img_rotated.save(rotated_filepath)
+        
+        return redirect(url_for('display_rotated_image', filename=rotated_filename))
     
     return render_template('rotate_image.html', active_page='rotate_image')
 
@@ -167,11 +154,10 @@ def rotate_image():
 def display_rotated_image(filename):
     file_url = os.path.join(app.config['RESIZED_FOLDER'], filename)
     
-    # Check if file exists
     if not os.path.isfile(file_url):
         return f"File {filename} not found!", 404
     
-    return render_template('display_image.html', image_url=url_for('static', filename=os.path.join('resized', filename)), filename=filename)
+    return render_template('display_image.html', image_url=url_for('download_image', filename=filename), filename=filename)
 
 if __name__ == '__main__':
     app.run(debug=True)
