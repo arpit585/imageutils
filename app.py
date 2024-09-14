@@ -6,9 +6,9 @@ from io import BytesIO
 app = Flask(__name__)
 
 # Directories for storing files
-UPLOAD_FOLDER = '/Users/arpit/Desktop/Project/my_flask_app/uploads'
-RESIZED_FOLDER = '/Users/arpit/Desktop/Project/my_flask_app/resized'
-COMPRESSED_FOLDER = '/Users/arpit/Desktop/Project/my_flask_app/compressed'
+UPLOAD_FOLDER = 'uploads'
+RESIZED_FOLDER = 'resized'
+COMPRESSED_FOLDER = 'compressed'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['RESIZED_FOLDER'] = RESIZED_FOLDER
 app.config['COMPRESSED_FOLDER'] = COMPRESSED_FOLDER
