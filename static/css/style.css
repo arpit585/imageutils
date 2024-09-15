@@ -74,6 +74,13 @@ button:hover {
     pointer-events: none;
 }
 
+.image-display img {
+    max-width: 100%; /* Make image responsive */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 10px; /* Rounded corners for the image */
+    margin-top: 20px; /* Spacing from text above */
+}
+
 .navbar {
     width: 100%;
     background-color: white;
@@ -205,6 +212,6 @@ button:hover {
 
     .navbar ul li a {
         font-size: 12px;
-        padding: 8px;
+        padding: 8px;
     }
 }

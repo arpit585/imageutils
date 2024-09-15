@@ -1,167 +1,152 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file
+from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 from PIL import Image
+import base64
 from io import BytesIO
-from google.cloud import storage
-from google.oauth2 import service_account
-from google_c import upload_image_on_cloud, download_image_from_cloud
 
 app = Flask(__name__)
 
-# Path to your service account key file
-SERVICE_ACCOUNT_FILE = 'my_flask_app/credential.json'
-
-# Initialize a Google Cloud Storage client
-credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE)
-client = storage.Client(credentials=credentials)
-bucket = client.bucket('imageutils')
+# Dictionary to hold in-memory image data
+image_storage = {}
 
 @app.route('/')
 def home():
-    # Render the form to upload and resize images
     return render_template('index.html', active_page='home')
 
 @app.route('/upload', methods=['POST'])
-def upload_image_to_cloud():
+def upload_image():
     if 'image' not in request.files or not request.files['image'].filename:
         return redirect(url_for('home'))
-
     file = request.files['image']
     if file:
-        # Read image from the request as a BytesIO object
-        img = Image.open(file)
-
-        # Resize the image
+        img = Image.open(file.stream)
         width = int(request.form['width'])
         height = int(request.form['height'])
         img_resized = img.resize((width, height))
-
-        # Save resized image to a BytesIO object (in memory)
         img_io = BytesIO()
-        img_resized.save(img_io, format=img.format)  # Save in the same format as uploaded image
-        img_io.seek(0)  # Go back to the start of the BytesIO object
+        img_resized.save(img_io, format=img.format)
+        img_io.seek(0)
+        # Convert image to base64 for immediate display
+        base64_image = base64.b64encode(img_io.getvalue()).decode('utf-8')
+        img_data_url = f"data:image/{img.format.lower()};base64,{base64_image}"
 
-        # Define the destination blob name in the cloud
-        resized_filename = f'resized_{file.filename}'
-        cloud_destination = f'resize/{resized_filename}'
+        # Save the image to memory for download
+        download_filename = f"resized_{file.filename}"
+        image_storage[download_filename] = img_io.getvalue()
 
-        # Upload the in-memory image to Google Cloud Storage
-        image_url = upload_image_on_cloud(img_io, cloud_destination)
+        return render_template('index.html',
+                               active_page='home',
+                               image_url=img_data_url,
+                               download_filename=download_filename)
 
-        # Pass the URL of the uploaded image to the template
-        return render_template('index.html', active_page='home', image_url=image_url, download_filename=resized_filename)
-    
     return redirect(url_for('home'))
+
 
 @app.route('/download/<filename>')
 def download_image(filename):
-    # Fetch image from Google Cloud Storage
-    file_io = download_image_from_cloud(f'resize/{filename}')
-    if file_io:
-        return send_file(file_io, as_attachment=True, download_name=filename)
-    else:
-        return f"File {filename} not found in cloud storage!", 404
-        
+    if filename in image_storage:
+        return send_file(BytesIO(image_storage[filename]),
+                         as_attachment=True,
+                         download_name=filename,
+                         mimetype='image/png')
+    return redirect(url_for('home'))
 
-@app.route('/crop_image', methods=['GET', 'POST'])
-def crop_image():
-    return render_template('crop_image.html', active_page='crop_image')
 
 @app.route('/image_compress', methods=['GET', 'POST'])
 def image_compress():
     if request.method == 'POST':
-        target_size_kb = int(request.form['size'])  # Get target size in KB from user
+        target_size_kb = int(request.form['size'])
         if 'image' not in request.files or not request.files['image'].filename:
             return redirect(url_for('image_compress'))
+        image_storage.clear()
+
         file = request.files['image']
+        img = Image.open(file.stream)
+        compressed_image_io = compress_image(img, target_size_kb)
+        compressed_image_io.seek(0)
 
-        # Save image to a BytesIO object
-        file_io = BytesIO(file.read())
-        file_io.seek(0)  # Reset BytesIO stream position
-        
-        # Compress the image
-        img = Image.open(file_io)
-        compressed_filename = f"compressed_{file.filename}"
-        compressed_file_io = BytesIO()
-        compress_image(img, compressed_file_io, target_size_kb)
-        
-        # Upload compressed image to Google Cloud Storage
-        compressed_cloud_destination = f'compressed/{compressed_filename}'
-        upload_image_on_cloud(compressed_file_io, compressed_cloud_destination)
+        # Convert compressed image to base64 for immediate display
+        base64_image = base64.b64encode(compressed_image_io.getvalue()).decode('utf-8')
+        img_data_url = f"data:image/{file.mimetype.split('/')[1]};base64,{base64_image}"
 
-        # Redirect to display the compressed image
-        return redirect(url_for('display_compressed_image', filename=compressed_filename))
-    
+        # Save the image to memory for download
+        download_filename = f"compressed_{file.filename}"
+        image_storage[download_filename] = compressed_image_io.getvalue()
+
+        return render_template('image_compress.html',
+                               active_page='image_compress',
+                               image_url=img_data_url,
+                               download_filename=download_filename)
+
     return render_template('image_compress.html', active_page='image_compress')
 
-@app.route('/display_compressed/<filename>')
-def display_compressed_image(filename):
-    file_url = f"https://storage.googleapis.com/imageutils/compressed/{filename}"
-    return render_template('display_image.html', image_url=file_url, filename=filename)
+def compress_image(image, target_size_kb):
+    img_format = image.format if image.format else "JPEG"
+    quality = 95
+    target_size_bytes = target_size_kb * 1024
 
-@app.route('/download_compressed/<filename>')
-def download_compressed_image(filename):
-    # Fetch compressed image from Google Cloud Storage
-    file_io = download_image_from_cloud(f'compressed/{filename}')
-    if file_io:
-        return send_file(file_io, as_attachment=True, download_name=filename)
-    else:
-        return f"File {filename} not found in cloud storage!", 404
-
-def compress_image(image, output_io, target_size_kb):
-    """
-    Compress the image to the target size in KB.
-    """
-    img_format = image.format if image.format else "JPEG"  # Preserve the format, default to JPEG if unknown
-    quality = 95  # Start with high quality
-    target_size_bytes = target_size_kb * 1024  # Convert target size from KB to Bytes
-    
+    img_io = BytesIO()
     while True:
-        output_io.seek(0)  # Reset output stream
-        image.save(output_io, format=img_format, quality=quality)
-        img_size = output_io.tell()  # Get the file size
-        
+        img_io.seek(0)
+        image.save(img_io, format=img_format, quality=quality)
+        img_size = img_io.tell()
+
         if img_size <= target_size_bytes or quality <= 10:
             break
         
         quality -= 5
 
-    output_io.seek(0)  # Reset output stream position
-    print(f"Compressed image ready.")
-    print(f"File size: {img_size} bytes")
+    img_io.seek(0)
+    return img_io
 
 @app.route('/rotate_image', methods=['GET', 'POST'])
 def rotate_image():
     if request.method == 'POST':
-        angle = int(request.form['angle'])  # Get rotation angle from user
+        angle = int(request.form['angle'])
         if 'image' not in request.files or not request.files['image'].filename:
             return redirect(url_for('rotate_image'))
         
         file = request.files['image']
+        img = Image.open(file.stream)
+        img_rotated = img.rotate(angle, expand=True)
+        img_io = BytesIO()
+        img_rotated.save(img_io, format=img.format)
+        img_io.seek(0)
 
-        # Save image to a BytesIO object
-        file_io = BytesIO(file.read())
-        file_io.seek(0)  # Reset BytesIO stream position
+        # Convert rotated image to base64 for immediate display
+        base64_image = base64.b64encode(img_io.getvalue()).decode('utf-8')
+        img_data_url = f"data:image/{img.format.lower()};base64,{base64_image}"
 
-        # Rotate image
-        img = Image.open(file_io)
-        rotated_filename = f"rotated_{file.filename}"
-        rotated_file_io = BytesIO()
-        img_rotated = img.rotate(angle, expand=True)  # Rotate image
-        img_rotated.save(rotated_file_io, format=img.format)
-        rotated_file_io.seek(0)  # Go back to the start of the BytesIO object
+        # Save the image to memory for download
+        download_filename = f"rotated_{file.filename}"
+        image_storage[download_filename] = img_io.getvalue()
 
-        # Upload rotated image to Google Cloud Storage
-        rotated_cloud_destination = f'rotated/{rotated_filename}'
-        upload_image_on_cloud(rotated_file_io, rotated_cloud_destination)
-        
-        return redirect(url_for('display_rotated_image', filename=rotated_filename))
+        return render_template('rotate_image.html',
+                               active_page='rotate_image',
+                               image_url=img_data_url,
+                               download_filename=download_filename)
     
     return render_template('rotate_image.html', active_page='rotate_image')
 
-@app.route('/display_rotated/<filename>')
-def display_rotated_image(filename):
-    file_url = f"https://storage.googleapis.com/imageutils/rotated/{filename}"
-    return render_template('display_image.html', image_url=file_url, filename=filename)
+    
+@app.route('/crop_image', methods=['GET', 'POST'])
+def crop_image():
+    if request.method == 'POST':
+        data_url = request.form.get('croppedImageData')
+        if not data_url:
+            return redirect(url_for('crop_image'))
+
+        image_data = data_url.split(",")[1]
+        image_bytes = base64.b64decode(image_data)
+        img = Image.open(BytesIO(image_bytes))
+
+        img_io = BytesIO()
+        img.save(img_io, format='PNG')
+        img_io.seek(0)
+
+        base64_image = base64.b64encode(img_io.getvalue()).decode('utf-8')
+        return jsonify({'image': f"data:image/png;base64,{base64_image}"})
+
+    return render_template('crop_image.html', active_page='crop_image')
 
 if __name__ == '__main__':
     app.run(debug=True)

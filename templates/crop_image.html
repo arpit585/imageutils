@@ -17,17 +17,18 @@
         <li><a href="{{ url_for('rotate_image') }}" class="{{ 'active' if active_page == 'rotate_image' else '' }}">Rotate Image</a></li>
     </ul>
 </div>
+
 <!-- Crop Image Section -->
 <div class="container">
     <h1>Crop Image</h1>
-    <form id="cropForm" action="/crop" method="POST" enctype="multipart/form-data">
+    <form id="cropForm" action="/crop_image" method="POST">
         <div class="upload-box" onclick="document.getElementById('crop-file-input').click();">
             <input type="file" id="crop-file-input" name="cropImage" accept="image/*" required>
-            
         </div>
         <div id="crop-container">
             <img id="image-to-crop" style="max-width: 100%; display: none;">
         </div>
+        <input type="hidden" id="croppedImageData" name="croppedImageData">
         <button type="button" id="crop-button">Crop Image</button>
     </form>
 
@@ -36,7 +37,7 @@
         <h2>Cropped Image</h2>
         <img id="cropped-image" style="max-width: 100%;">
         <a id="download-cropped" href="" download="cropped_image.png">
-            <button>Download Cropped Image</button>
+            <button type="button" >Download Cropped Image</button>
         </a>
     </div>
 </div>

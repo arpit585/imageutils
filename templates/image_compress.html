@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Compressor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
 </head>
 <body>
 <!-- Navbar -->
@@ -16,28 +17,28 @@
         <li><a href="{{ url_for('rotate_image') }}" class="{{ 'active' if active_page == 'rotate_image' else '' }}">Rotate Image</a></li>
     </ul>
 </div>
-
-<!-- Main container for image compression -->
 <div class="container">
     <h1>Image Compressor</h1>
-    <form action="{{ url_for('image_compress') }}" method="POST" enctype="multipart/form-data">
+    <form action="/image_compress" method="POST" enctype="multipart/form-data">
         <div class="upload-box" onclick="document.getElementById('file-input').click();">
             <input type="file" id="file-input" name="image" accept="image/*" required>
         </div>
-        <label for="size">Enter desired size (KB):</label>
-        <input type="number" id="size" name="size" value="60" required><br>
+        <div class="size-inputs">
+            <label for="size">Enter target size (KB):</label>
+            <input type="number" id="size" name="size" required><br>
+        </div>
         <button type="submit">Compress Image</button>
     </form>
 
-    <!-- Display compressed image download link after processing -->
-    {% if image_url and download_filename %}
-        <div class="image-output">
-            <h2>Compressed Image</h2>
-            <a href="{{ image_url }}" download="{{ download_filename }}">Download Compressed Image</a>
-            
-            <h3>Download Resized Image:</h3>
-            <a href="{{ url_for('download_image', filename=download_filename) }}" class="btn">Download Image</a>
-        </div>
+    <!-- Conditional display based on the existence of a compressed image -->
+    {% if image_url %}
+    <div class="image-display">
+        <h2>Compressed Image:</h2>
+        <img src="{{ image_url }}" alt="Compressed Image">
+
+        <h3>Download Compressed Image:</h3>
+        <a href="{{ url_for('download_image', filename=download_filename) }}" ><button  type="button" class="btn">Download Image</button></a>
+    </div>
     {% endif %}
 </div>
 
