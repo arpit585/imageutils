@@ -40,12 +40,11 @@
         <img src="{{ image_url }}" alt="Resized Image">
 
         <h3>Download Resized Image:</h3>
-        <a href="{{ url_for('download_image', filename=download_filename) }}" class="btn"><button  type="button" class="btn">Download Image</button></a>
+        <a href="{{ url_for('download_image', filename=download_filename) }}" class="btn">Download Image</a>
     </div>
     {% endif %}
 </div>
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
 </body>
 </html>
