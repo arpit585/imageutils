@@ -1,18 +1,20 @@
 /* Base styles remain the same */
 .container {
     width: 100%;
-    max-width: 500px; /* Limit the width of the form */
-    margin: 0 auto; /* Center the form horizontally */
+    max-width: 500px;
+    margin: 0 auto;
     padding: 20px;
     background-color: #f9f9f9;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center; /* Center text inside the form */
+    text-align: center;
+    box-sizing: border-box;
 }
 
 h1 {
     font-size: 24px;
     color: #333;
+    margin-bottom: 20px;
 }
 
 form {
@@ -28,12 +30,13 @@ label {
 }
 
 input[type="number"] {
-    width: 100%; /* Full width of the container */
+    width: 100%;
     padding: 10px;
     margin-bottom: 15px;
     font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    box-sizing: border-box;
 }
 
 button {
@@ -44,6 +47,7 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
@@ -52,9 +56,9 @@ button:hover {
 
 .upload-box {
     width: 100%;
-    max-width: 300px; /* Limit max width */
-    height: auto;  /* Adjust height */
-    min-height: 200px;  /* Ensure a minimum height */
+    max-width: 300px;
+    height: auto;
+    min-height: 200px;
     border: 2px dashed #cccccc;
     border-radius: 10px;
     display: flex;
@@ -64,8 +68,9 @@ button:hover {
     color: #666666;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    font-size: 16px;  /* Adjust font size */
-    margin: 20px auto;  /* Center horizontally */
+    font-size: 16px;
+    margin: 20px auto;
+    box-sizing: border-box;
 }
 
 .upload-box p {
@@ -74,11 +79,15 @@ button:hover {
     pointer-events: none;
 }
 
-.image-display img {
-    max-width: 100%; /* Make image responsive */
-    height: auto; /* Maintain aspect ratio */
-    border-radius: 10px; /* Rounded corners for the image */
-    margin-top: 20px; /* Spacing from text above */
+#image-display {
+    margin-top: 20px;
+}
+
+#resized-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-top: 20px;
 }
 
 .navbar {
@@ -95,7 +104,7 @@ button:hover {
     padding: 0;
     display: flex;
     justify-content: center;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
+    flex-wrap: wrap;
 }
 
 .navbar ul li {
@@ -109,16 +118,16 @@ button:hover {
     text-decoration: none;
     text-transform: uppercase;
     font-weight: bold;
+    transition: background-color 0.3s ease;
 }
 
 .navbar ul li a:hover {
     background-color: #f0f0f0;
     color: black;
-    transition: background-color 0.3s ease;
 }
 
 .navbar ul li a.active {
-    background-color: #e8e8e8; /* Darker background color */
+    background-color: #e8e8e8;
     color: black;
     font-weight: bold;
     border-radius: 0px;
@@ -126,11 +135,10 @@ button:hover {
 
 /* Media Queries */
 
-/* For devices with a max-width of 992px (tablets and smaller laptops) */
 @media only screen and (max-width: 992px) {
     .container {
-        width: 80%;
-        padding: 20px;
+        width: 90%;
+        padding: 15px;
     }
 
     h1 {
@@ -138,56 +146,53 @@ button:hover {
     }
 
     .upload-box {
-        width: 80%;
-        min-height: 150px; /* Adjusted minimum height */
+        width: 90%;
+        min-height: 150px;
     }
 }
 
-/* For devices with a max-width of 768px (smaller tablets and large phones) */
 @media only screen and (max-width: 768px) {
     .container {
-        width: 90%;
-        padding: 15px;
+        width: 95%;
+        padding: 10px;
     }
 
     h1 {
         font-size: 20px;
     }
 
-    input[type="number"] {
-        padding: 8px;
-        font-size: 14px;
-    }
-
+    input[type="number"],
     button {
-        width: 100%; /* Full width button */
         font-size: 14px;
     }
 
     .upload-box {
-        width: 100%; /* Full width on mobile */
-        min-height: 120px; /* Adjusted minimum height */
+        width: 100%;
+        min-height: 120px;
+        font-size: 14px;
     }
 
-    /* Navbar styling */
     .navbar ul {
-        flex-wrap: wrap; /* Allow wrapping on smaller screens */
-        justify-content: center; /* Center items */
+        flex-direction: column;
+        align-items: center;
     }
 
     .navbar ul li {
-        margin-right: 10px; /* Adjust margin for small screens */
+        margin: 5px 0;
+        width: 100%;
+        text-align: center;
     }
 
     .navbar ul li a {
-        font-size: 14px;
+        display: block;
         padding: 10px;
+        font-size: 14px;
     }
 }
 
-/* For devices with a max-width of 480px (small phones) */
 @media only screen and (max-width: 480px) {
     .container {
+        width: 100%;
         padding: 10px;
     }
 
@@ -195,18 +200,14 @@ button:hover {
         font-size: 18px;
     }
 
-    input[type="number"] {
-        padding: 6px;
-        font-size: 12px;
-    }
-
+    input[type="number"],
     button {
         font-size: 12px;
-        width: 100%;
         padding: 8px;
     }
 
     .upload-box {
+        min-height: 100px;
         font-size: 12px;
     }
 

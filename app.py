@@ -2,8 +2,11 @@ from flask import Flask, render_template, request, redirect, url_for, send_file,
 from PIL import Image
 import base64
 from io import BytesIO
+import logging
 
 app = Flask(__name__)
+logging.basicConfig(level=logging.DEBUG)
+
 
 # Dictionary to hold in-memory image data
 image_storage = {}
@@ -11,43 +14,69 @@ image_storage = {}
 @app.route('/')
 def home():
     return render_template('index.html', active_page='home')
-
+    
 @app.route('/upload', methods=['POST'])
 def upload_image():
-    if 'image' not in request.files or not request.files['image'].filename:
-        return redirect(url_for('home'))
+    if 'image' not in request.files:
+        app.logger.error("No image file in request")
+        return jsonify({'error': 'No image file in request'}), 400
+    
     file = request.files['image']
+    
+    if file.filename == '':
+        app.logger.error("No selected file")
+        return jsonify({'error': 'No selected file'}), 400
+    
     if file:
-        img = Image.open(file.stream)
-        width = int(request.form['width'])
-        height = int(request.form['height'])
-        img_resized = img.resize((width, height))
-        img_io = BytesIO()
-        img_resized.save(img_io, format=img.format)
-        img_io.seek(0)
-        # Convert image to base64 for immediate display
-        base64_image = base64.b64encode(img_io.getvalue()).decode('utf-8')
-        img_data_url = f"data:image/{img.format.lower()};base64,{base64_image}"
+        try:
+            img = Image.open(file.stream)
+            width = int(request.form['width'])
+            height = int(request.form['height'])
 
-        # Save the image to memory for download
-        download_filename = f"resized_{file.filename}"
-        image_storage[download_filename] = img_io.getvalue()
+            # Resize the image
+            img_resized = img.resize((width, height))
 
-        return render_template('index.html',
-                               active_page='home',
-                               image_url=img_data_url,
-                               download_filename=download_filename)
+            # Prepare image for immediate display and download (PNG format)
+            img_io = BytesIO()
+            img_resized.save(img_io, format='PNG')
+            img_io.seek(0)
 
-    return redirect(url_for('home'))
+            # Convert the image to base64 for display
+            base64_image = base64.b64encode(img_io.getvalue()).decode('utf-8')
+            img_data_url = f"data:image/png;base64,{base64_image}"
 
+            # Store the image data for download
+            download_filename = f"resized_{file.filename.rsplit('.', 1)[0]}.png"
+            image_storage[download_filename] = img_io.getvalue()
+
+            app.logger.info(f"Image processed successfully: {download_filename}")
+            return jsonify({
+                'image_url': img_data_url,
+                'download_filename': download_filename
+            })
+        
+        except Exception as e:
+            app.logger.error(f"Error processing image: {str(e)}")
+            return jsonify({'error': str(e)}), 500
+    
+    app.logger.error("Invalid request")
+    return jsonify({'error': 'Invalid request'}), 400
 
 @app.route('/download/<filename>')
 def download_image(filename):
     if filename in image_storage:
-        return send_file(BytesIO(image_storage[filename]),
-                         as_attachment=True,
-                         download_name=filename,
-                         mimetype='image/png')
+        try:
+            return send_file(
+                BytesIO(image_storage[filename]),
+                as_attachment=True,
+                download_name=filename,
+                mimetype='image/png'
+            )
+        except Exception as e:
+            app.logger.error(f"Error sending file: {str(e)}")
+            return jsonify({'error': 'Error sending file'}), 500
+    
+    app.logger.error(f"File not found: {filename}")
     return redirect(url_for('home'))
 
 
@@ -67,15 +96,8 @@ def image_compress():
         # Convert compressed image to base64 for immediate display
         base64_image = base64.b64encode(compressed_image_io.getvalue()).decode('utf-8')
         img_data_url = f"data:image/{file.mimetype.split('/')[1]};base64,{base64_image}"
-
-        # Save the image to memory for download
-        download_filename = f"compressed_{file.filename}"
-        image_storage[download_filename] = compressed_image_io.getvalue()
-
-        return render_template('image_compress.html',
-                               active_page='image_compress',
-                               image_url=img_data_url,
-                               download_filename=download_filename)
+        
+        return jsonify(img_data_url)
 
     return render_template('image_compress.html', active_page='image_compress')
 
