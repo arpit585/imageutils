@@ -10,6 +10,7 @@
 <body>
 <!-- Navbar -->
 <div class="navbar">
+    <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Logo" class="logo">
     <ul>
         <li><a href="{{ url_for('home') }}" class="{{ 'active' if active_page == 'home' else '' }}">Resize Image</a></li>
         <li><a href="{{ url_for('crop_image') }}" class="{{ 'active' if active_page == 'crop_image' else '' }}">Crop Image</a></li>
@@ -21,7 +22,8 @@
     <h1>Rotate Image</h1>
     <form action="/rotate_image" method="POST" enctype="multipart/form-data">
         <div class="upload-box" onclick="document.getElementById('file-input').click();">
-            <input type="file" id="file-input" name="image" accept="image/*" required>
+            <input type="file" id="file-input" name="image" accept="image/*" required style="display:none;">
+            <p id="file-name-text">Click to upload an image</p> <!-- Default text to click -->
         </div>
         <div class="size-inputs">
             <label for="angle">Enter rotation angle (degrees):</label>

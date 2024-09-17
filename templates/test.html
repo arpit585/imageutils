@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hamburger Menu</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            padding: 20px;
+        }
+
+        .hamburger-menu {
+            display: none;
+            cursor: pointer;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 20px;
+        }
+
+        .hamburger-menu .bar {
+            width: 25px;
+            height: 3px;
+            background-color: #fff;
+        }
+
+        .menu-options {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 20px;
+        }
+
+        .menu-options li a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        /* Media query for small screens */
+        @media (max-width: 768px) {
+            .menu-options {
+                position: absolute;
+                top: 0;
+                right: 0;
+                height: 100vh;
+                width: 200px;
+                background-color: #333;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                transform: translateX(100%); /* Hidden off-screen */
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .menu-options.menu-active {
+                transform: translateX(0); /* Slide in */
+            }
+
+            .hamburger-menu {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="hamburger-menu">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <ul class="menu-options">
+            <li><a href="#">Option 1</a></li>
+            <li><a href="#">Option 2</a></li>
+            <li><a href="#">Option 3</a></li>
+            <li><a href="#">Option 4</a></li>
+        </ul>
+    </nav>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const menuOptions = document.querySelector('.menu-options');
+
+        hamburgerMenu.addEventListener('click', () => {
+            menuOptions.classList.toggle('menu-active');
+        });
+    </script>
+</body>
+</html>
