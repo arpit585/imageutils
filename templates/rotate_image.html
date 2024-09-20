@@ -10,7 +10,7 @@
 <body>
 <!-- Navbar -->
 <div class="navbar">
-    <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Logo" class="logo">
+    <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Logo" class="logo"></img>
     <ul>
         <li><a href="{{ url_for('home') }}" class="{{ 'active' if active_page == 'home' else '' }}">Resize Image</a></li>
         <li><a href="{{ url_for('crop_image') }}" class="{{ 'active' if active_page == 'crop_image' else '' }}">Crop Image</a></li>
@@ -20,32 +20,79 @@
 </div>
 <div class="container">
     <h1>Rotate Image</h1>
-    <form action="/rotate_image" method="POST" enctype="multipart/form-data">
+    <form id="rotate-form" action="/rotate_image" method="POST" enctype="multipart/form-data">
         <div class="upload-box" onclick="document.getElementById('file-input').click();">
             <input type="file" id="file-input" name="image" accept="image/*" required style="display:none;">
-            <p id="file-name-text">Click to upload an image</p> <!-- Default text to click -->
+            <p id="file-name-text">Click to upload an image</p> 
         </div>
-        <div class="size-inputs">
-            <label for="angle">Enter rotation angle (degrees):</label>
-            <input type="number" id="angle" name="angle" required><br>
+
+        <!-- Slider input for rotation angle -->
+        <div class="angle-input">
+            <label for="angle-slider">Adjust rotation (degrees):</label>
+            <input type="range" id="angle-slider" name="angle" min="0" max="360" value="0" step="1">
+            <span id="angle-value">0°</span>
         </div>
-        <button type="submit">Rotate Image</button>
+
+        <button type="submit">Rotate and Submit</button>
     </form>
 
-    <!-- Conditional display based on the existence of a rotated image -->
+    <!-- Image Preview Section -->
+    <div id="image-preview" style="display: none;">
+        <h2>Rotated Image Preview:</h2>
+        <img id="rotated-image" style="max-width: 50%;" alt="Rotated Image">
+    </div>
+
+    <!-- Image Display Section -->
     {% if image_url %}
     <div class="image-display">
-        <h2>Rotated Image:</h2>
-        <img src="{{ image_url }}" alt="Rotated Image">
-
         <h3>Download Rotated Image:</h3>
-        <a href="{{ url_for('download_image', filename=download_filename) }}" class="btn"><button  type="button" class="btn">Download Image</button></a>
-    </div>
+        <a href="{{ url_for('download_image', filename=download_filename) }}">
+            <button type="button" class="btn">Download Image</button>
+        </a>
+        <h2>Final Rotated Image:</h2>
+        <img src="{{ image_url }}" alt="Final Rotated Image" style="max-width: 50%;">
+        
     </div>
     {% endif %}
 </div>
 
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file-input');
+    const fileNameText = document.getElementById('file-name-text');
+    const imagePreview = document.getElementById('image-preview');
+    const rotatedImage = document.getElementById('rotated-image');
+    const angleSlider = document.getElementById('angle-slider');
+    const angleValue = document.getElementById('angle-value');
 
+    // Show image file name after selection
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length > 0) {
+            fileNameText.textContent = `Selected file: ${fileInput.files[0].name}`;
+            previewImage(fileInput.files[0]);
+        } else {
+            fileNameText.textContent = 'Click to upload an image';
+            imagePreview.style.display = 'none';
+        }
+    });
+
+    // Function to preview and rotate image on the client-side
+    function previewImage(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            rotatedImage.src = e.target.result;
+            imagePreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Listen for changes in the rotation slider and adjust image rotation
+    angleSlider.addEventListener('input', function() {
+        const angle = angleSlider.value;
+        angleValue.textContent = `${angle}°`;
+        rotatedImage.style.transform = `rotate(${angle}deg)`;
+    });
+});
+</script>
 </body>
 </html>

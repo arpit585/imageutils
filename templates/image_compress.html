@@ -10,7 +10,7 @@
 <body>
 <!-- Navbar -->
 <div class="navbar">
-    <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Logo" class="logo"></img>
+    <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Logo" class="logo">
     <ul>
         <li><a href="{{ url_for('home') }}" class="{{ 'active' if active_page == 'home' else '' }}">Resize Image</a></li>
         <li><a href="{{ url_for('crop_image') }}" class="{{ 'active' if active_page == 'crop_image' else '' }}">Crop Image</a></li>
@@ -21,7 +21,7 @@
 <div class="container">
     <h1>Image Compressor</h1>
     <form action="/image_compress" method="POST" enctype="multipart/form-data">
-        <div class="upload-box" onclick="document.getElementById('file-input').click();">
+        <div class="upload-box" id="upload-box" onclick="document.getElementById('file-input').click();">
             <input type="file" id="file-input" name="image" accept="image/*" required style="display:none;">
             <p id="file-name-text">Click to upload an image</p> 
         </div>
@@ -36,7 +36,7 @@
     {% if image_url %}
     <div class="image-display">
         <h2>Compressed Image:</h2>
-        <img src="{{ image_url }}" alt="Compressed Image">
+        <img src="{{ image_url }}" style="max-width: 100%;" alt="Compressed Image">
 
         <h3>Download Compressed Image:</h3>
         <a href="{{ url_for('download_image', filename=download_filename) }}" ><button  type="button" class="btn">Download Image</button></a>
@@ -44,7 +44,19 @@
     {% endif %}
 </div>
 
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<!-- JavaScript to update the file name after selecting a file -->
+<script>
+    document.getElementById('file-input').addEventListener('change', function() {
+        const fileNameText = document.getElementById('file-name-text');
+        const fileInput = document.getElementById('file-input');
+        
+        if (fileInput.files.length > 0) {
+            fileNameText.textContent = `Selected file: ${fileInput.files[0].name}`;
+        } else {
+            fileNameText.textContent = 'Click to upload an image';
+        }
+    });
+</script>
 
 </body>
 </html>
